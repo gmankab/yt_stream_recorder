@@ -67,12 +67,17 @@ except ImportError as error_text:
         ):
             if file[-5:] == '._pth':
                 with open(
-                    f'{py_dir}/{file}', 'r+'
+                    f'{py_dir}/{file}', 'w'
                 ) as file:
-                    if 'import site\n' not in file.readlines():
-                        file.write('import site')
-                    if str(proj_path) not in file.readlines():
-                        file.write(str(proj_path))
+                    file.write(
+                        f'''\
+{proj_path}
+python310.zip
+.
+
+import site
+'''
+                    )
 
         # downloading pip
         get_pip = f'{proj_path}/get-pip.py'

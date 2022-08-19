@@ -4,7 +4,7 @@ set cwd=%~dp0
 set proj_name=yt_stream_recorder
 set proj_path=%cwd%\%proj_name%
 set proj_py=%proj_path%\%proj_name%_win.py
-set tmp_name=%proj_path%\%proj_name%.tmp
+set tmp_name=%proj_path%\%proj_name%_win.tmp
 set project_link=https://raw.githubusercontent.com/gmankab/yt_stream_recorder/main/windows/yt_stream_recorder_win.py
 set python_version=3.10.6
 set python_dir=%proj_path%\!python_%python_version%
@@ -43,7 +43,9 @@ if not exist "%python%" (
 if not exist "%proj_py%" (
     echo downloading %proj_py% from "%project_link%"
     curl -SL "%project_link%" -o "%tmp_name%"
-    ren "%tmp_name%" "%proj_py%"
+    echo %tmp_name%
+    echo %proj_py%
+    ren "%tmp_name%" "%proj_name%_win.py"
 )
 
 "%python%" "%proj_py%" %*
