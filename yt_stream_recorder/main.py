@@ -11,7 +11,7 @@ import os
 
 rich.pretty.install()
 traceback.install(show_locals=True)
-version = '22.0.5'
+version = '22.0.6'
 c = rich.console.Console(
     record = True
 )
@@ -49,6 +49,7 @@ while True:
     except json.JSONDecodeError as error:
         error_file_path = Path(f'{proj_dir}/error.txt')
         c.export_text()
+        print(sys.path)
         c.print_exception(
             show_locals=True,
             max_frames=20,
