@@ -10,7 +10,7 @@ import os
 
 rich.pretty.install()
 traceback.install(show_locals=True)
-version = '22.0'
+version = '22.0.1'
 c = rich.console.Console(
     record = True
 )

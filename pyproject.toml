@@ -8,7 +8,7 @@ dependencies = [
   "yt-dlp",
 ]
 name = "yt_stream_recorder"
-version = "22.0.0"
+version = "22.0.1"
 authors = [
   { name="gmanka", email="gmankab@gmail.com" },
 ]
