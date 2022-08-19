@@ -1,0 +1,70 @@
+╭─────────────────────────────── Traceback (most recent call last) ────────────────────────────────╮
+│ /home/gmanka/proj/yt_stream_recorder/yt_stream_recorder/main.py:46 in <module>                   │
+│                                                                                                  │
+│    43 │   │   f'{yt_dlp} {params} {channel_link} -j'                                             │
+│    44 │   )                                                                                      │
+│    45 │   try:                                                                                   │
+│ ❱  46 │   │   raise json.JSONDecodeError('1', '2', 3)                                            │
+│    47 │   │   page_data = json.loads(                                                            │
+│    48 │   │   │   page_data                                                                      │
+│    49 │   │   )                                                                                  │
+│                                                                                                  │
+│ ╭─────────────────────────────────────────── locals ───────────────────────────────────────────╮ │
+│ │         __builtins__ = {                                                                     │ │
+│ │                        │   '__name__': 'builtins',                                           │ │
+│ │                        │   '__doc__': 'Built-in functions, exceptions, and other             │ │
+│ │                        objects.\n\nNoteworthy: None is the `nil'+46,                         │ │
+│ │                        │   '__package__': '',                                                │ │
+│ │                        │   '__loader__': <class '_frozen_importlib.BuiltinImporter'>,        │ │
+│ │                        │   '__spec__': ModuleSpec(name='builtins', loader=<class             │ │
+│ │                        '_frozen_importlib.BuiltinImporter'>, origin='built-in'),             │ │
+│ │                        │   '__build_class__': <built-in function __build_class__>,           │ │
+│ │                        │   '__import__': <built-in function __import__>,                     │ │
+│ │                        │   'abs': <built-in function abs>,                                   │ │
+│ │                        │   'all': <built-in function all>,                                   │ │
+│ │                        │   'any': <built-in function any>,                                   │ │
+│ │                        │   ... +145                                                          │ │
+│ │                        }                                                                     │ │
+│ │           __cached__ = '/home/gmanka/proj/yt_stream_recorder/yt_stream_recorder/__pycache__… │ │
+│ │              __doc__ = None                                                                  │ │
+│ │             __file__ = '/home/gmanka/proj/yt_stream_recorder/yt_stream_recorder/main.py'     │ │
+│ │           __loader__ = <_frozen_importlib_external.SourceFileLoader object at                │ │
+│ │                        0x7ff1b96601c0>                                                       │ │
+│ │             __name__ = 'yt_stream_recorder.main'                                             │ │
+│ │          __package__ = 'yt_stream_recorder'                                                  │ │
+│ │             __spec__ = ModuleSpec(name='yt_stream_recorder.main',                            │ │
+│ │                        loader=<_frozen_importlib_external.SourceFileLoader object at         │ │
+│ │                        0x7ff1b96601c0>,                                                      │ │
+│ │                        origin='/home/gmanka/proj/yt_stream_recorder/yt_stream_recorder/main… │ │
+│ │                    c = <console width=102 ColorSystem.TRUECOLOR>                             │ │
+│ │         channel_link = 'https://youtube.com/channel/UCk73U4QT3cNDvqb_PaWM8AA'                │ │
+│ │           erase_line = '\x1b[2K'                                                             │ │
+│ │                error = JSONDecodeError('1: line 1 column 4 (char 3)')                        │ │
+│ │      error_file_path = PosixPath('/home/gmanka/proj/yt_stream_recorder/yt_stream_recorder/e… │ │
+│ │                 json = <module 'json' from '/usr/lib/python3.10/json/__init__.py'>           │ │
+│ │                   os = <module 'os' from '/usr/lib/python3.10/os.py'>                        │ │
+│ │            page_data = '{"id": "4LL_Y1o9Jw4", "title":                                       │ │
+│ │                        "\\u0420\\u043e\\u0437\\u044b\\u0433\\u0440\\u044b\\u0448'+343016     │ │
+│ │               params = '--playlist-items 1 --ignore-errors --no-abort-on-error'              │ │
+│ │                 Path = <class 'pathlib.Path'>                                                │ │
+│ │                print = <bound method Console.print of <console width=102                     │ │
+│ │                        ColorSystem.TRUECOLOR>>                                               │ │
+│ │             progress = <module 'rich.progress' from                                          │ │
+│ │                        '/home/gmanka/.local/lib/python3.10/site-packages/rich/progress.py'>  │ │
+│ │             proj_dir = PosixPath('/home/gmanka/proj/yt_stream_recorder/yt_stream_recorder')  │ │
+│ │                 rich = <module 'rich' from                                                   │ │
+│ │                        '/home/gmanka/.local/lib/python3.10/site-packages/rich/__init__.py'>  │ │
+│ │                  run = <function run at 0x7ff1b9e86b90>                                      │ │
+│ │               run_st = <function getstatusoutput at 0x7ff1b9c024d0>                          │ │
+│ │           subprocess = <module 'subprocess' from '/usr/lib/python3.10/subprocess.py'>        │ │
+│ │                  sys = <module 'sys' (built-in)>                                             │ │
+│ │                 time = <module 'time' (built-in)>                                            │ │
+│ │ timeout_for_checking = 15                                                                    │ │
+│ │            traceback = <module 'rich.traceback' from                                         │ │
+│ │                        '/home/gmanka/.local/lib/python3.10/site-packages/rich/traceback.py'> │ │
+│ │               up_one = '\x1b[1A'                                                             │ │
+│ │              version = '22.0.1'                                                              │ │
+│ │               yt_dlp = '/usr/bin/python -m yt_dlp'                                           │ │
+│ ╰──────────────────────────────────────────────────────────────────────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+JSONDecodeError: 1: line 1 column 4 (char 3)

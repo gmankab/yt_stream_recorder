@@ -83,7 +83,7 @@ except ImportError as error_text:
         print()
         Path(get_pip_tmp).rename(get_pip)
 
-        print('Preparing to install pip')
+        print('Preparing to update pip')
         if portable:
             os.system(
                 f'{sys.executable} {get_pip} --no-warn-script-location --cache-dir {pip_cache_path}'

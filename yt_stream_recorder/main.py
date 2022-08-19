@@ -1,5 +1,6 @@
 from rich import traceback
 from rich import progress
+from pathlib import Path
 import subprocess
 import json
 import rich
@@ -19,6 +20,7 @@ run_st = subprocess.getstatusoutput
 up_one = '\x1b[1A'
 erase_line = '\x1b[2K'
 yt_dlp = f'{sys.executable} -m yt_dlp'
+proj_dir = Path(__file__).parent.resolve()
 
 
 def run(
@@ -40,9 +42,32 @@ while True:
     page_data = run(
         f'{yt_dlp} {params} {channel_link} -j'
     )
-    page_data = json.loads(
-        page_data
-    )
+    try:
+        page_data = json.loads(
+            page_data
+        )
+    except json.JSONDecodeError as error:
+        error_file_path = Path(f'{proj_dir}/error.txt')
+        c.export_text()
+        c.print_json(
+            page_data
+        )
+        c.print_exception(
+            show_locals=True,
+            max_frames=20,
+        )
+        with open(
+            error_file_path,
+            'w'
+        ) as error_file:
+            error_file.write(
+                c.export_text()
+            )
+        print(
+            f'[green] error text written to [deep_sky_blue1]{error_file_path}'
+        )
+        sys.exit()
+
 
     id = page_data['id']
     is_live = page_data['is_live']
