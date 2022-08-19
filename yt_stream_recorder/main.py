@@ -19,8 +19,18 @@ print = c.print
 run_st = subprocess.getstatusoutput
 up_one = '\x1b[1A'
 erase_line = '\x1b[2K'
-yt_dlp = f'{sys.executable} -m yt_dlp'
 proj_dir = Path(__file__).parent.resolve()
+if 'portable' in sys.argv:
+    yt_dlp_dir = Path(
+        f'{Path(proj_dir).parent.resolve()}/yt_dlp'
+    )
+    if yt_dlp_dir not in sys.path:
+        sys.path.append(
+            str(yt_dlp_dir)
+        )
+    yt_dlp = f'{sys.executable} {yt_dlp_dir}'
+else:
+    yt_dlp = f'{sys.executable} -m yt_dlp'
 
 
 def run(

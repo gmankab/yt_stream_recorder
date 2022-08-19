@@ -69,8 +69,11 @@ except ImportError as error_text:
                 with open(
                     f'{py_dir}/{file}', 'r+'
                 ) as file:
-                    if '#import site' in file.readlines()[-1]:
+                    if 'import site\n' not in file.readlines():
                         file.write('import site')
+                    if str(proj_path) not in file.readlines():
+                        file.write(str(proj_path))
+                    
 
         # downloading pip
         get_pip = f'{proj_path}/get-pip.py'
