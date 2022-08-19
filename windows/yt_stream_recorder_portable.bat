@@ -1,9 +1,9 @@
 @echo off
 
 set cwd=%~dp0
-set proj_name=yt_stream_recorder_win
+set proj_name=yt_stream_recorder
 set proj_path=%cwd%\%proj_name%
-set proj_py=%proj_path%\%proj_name%.py
+set proj_py=%proj_path%\%proj_name%_win.py
 set tmp_name=%proj_path%\%proj_name%.tmp
 set project_link=https://raw.githubusercontent.com/gmankab/yt_stream_recorder/main/windows/yt_stream_recorder_win.py
 set python_version=3.10.6

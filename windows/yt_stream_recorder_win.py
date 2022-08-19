@@ -12,7 +12,7 @@ portable = 'portable' in sys.argv
 
 
 if portable:
-    if str(proj_path) not in sys.path:
+    if str(proj_path.parent.resolve()) not in sys.path:
         sys.path.append(
             str(proj_path)
         )

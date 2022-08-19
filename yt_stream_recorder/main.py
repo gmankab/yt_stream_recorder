@@ -49,18 +49,17 @@ while True:
     except json.JSONDecodeError as error:
         error_file_path = Path(f'{proj_dir}/error.txt')
         c.export_text()
-        c.print(page_data)
-        c.print('\n\n\n')
         c.print_exception(
             show_locals=True,
             max_frames=20,
         )
         with open(
             error_file_path,
-            'w'
+            'w',
+            encoding = 'utf-8',
         ) as error_file:
             error_file.write(
-                c.export_text()
+                f'{page_data}\n\n\n{c.export_text()}'
             )
         print(
             f'[green] error text written to [deep_sky_blue1]{error_file_path}'
