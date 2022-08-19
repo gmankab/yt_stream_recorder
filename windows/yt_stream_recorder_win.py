@@ -8,14 +8,6 @@ import os
 proj_name = 'yt_stream_recorder'
 proj_path = Path(__file__).parent.resolve()
 run_st = subprocess.getstatusoutput
-portable = 'portable' in sys.argv
-
-
-if portable:
-    if str(proj_path) not in sys.path:
-        sys.path.append(
-            str(proj_path)
-        )
 
 
 try:
@@ -50,11 +42,8 @@ except ImportError as error_text:
             )
 
     pip = f'{sys.executable} -m pip'
-    if portable:
-        pip_cache_path = f'{proj_path}/pip_cache'
-        upgrade_pip = run(f'{pip} install --upgrade pip --cache-dir {pip_cache_path}')
-    else:
-        upgrade_pip = run(f'{pip} install --upgrade pip')
+    pip_cache_path = f'{proj_path}/pip_cache'
+    upgrade_pip = run(f'{pip} install --upgrade pip --cache-dir {pip_cache_path}')
 
     if 'No module named pip' in upgrade_pip:
         print('downloading pip')
@@ -91,14 +80,9 @@ import site
         Path(get_pip_tmp).rename(get_pip)
 
         print('Preparing to update pip')
-        if portable:
-            os.system(
-                f'{sys.executable} {get_pip} --no-warn-script-location --cache-dir {pip_cache_path}'
-            )
-        else:
-            os.system(
-                f'{sys.executable} {get_pip} --no-warn-script-location'
-            )
+        os.system(
+            f'{sys.executable} {get_pip} --no-warn-script-location --cache-dir {pip_cache_path}'
+        )
         os.remove(get_pip)
         print('successfully installed pip')
     else:
@@ -106,14 +90,11 @@ import site
 
     os.system(f'{pip} config set global.no-warn-script-location true')
 
-    if portable:
-        os.system(f'{pip} install --upgrade {proj_name} -t {proj_path} --cache-dir {pip_cache_path}')
-        sh.rmtree(
-            pip_cache_path,
-            ignore_errors=True
-        )
-    else:
-        os.system(f'{pip} install --upgrade {proj_name}')
+    os.system(f'{pip} install --upgrade {proj_name} -t {proj_path} --cache-dir {pip_cache_path}')
+    sh.rmtree(
+        pip_cache_path,
+        ignore_errors=True
+    )
 
     for file_name in os.listdir(proj_path):
         if (

@@ -11,7 +11,7 @@ import os
 
 rich.pretty.install()
 traceback.install(show_locals=True)
-version = '22.0.7'
+version = '22.0.8'
 c = rich.console.Console(
     record = True
 )
@@ -24,10 +24,6 @@ if 'portable' in sys.argv:
     yt_dlp_dir = Path(
         f'{Path(proj_dir).parent.resolve()}/yt_dlp'
     )
-    if yt_dlp_dir not in sys.path:
-        sys.path.append(
-            str(yt_dlp_dir)
-        )
     yt_dlp = f'{sys.executable} {yt_dlp_dir}'
 else:
     yt_dlp = f'{sys.executable} -m yt_dlp'
@@ -49,14 +45,15 @@ print(f'started stream recorder version {version}')
 
 while True:
     print('checking latest video...')
-    page_data = run(
+    page_data_str = run(
         f'{yt_dlp} {params} {channel_link} -j'
     )
     try:
+        index = page_data_str.find('{')
         page_data = json.loads(
-            page_data
+            page_data_str[index:]
         )
-    except json.JSONDecodeError as error:
+    except Exception:
         error_file_path = Path(f'{proj_dir}/error.txt')
         c.export_text()
         print(sys.path)
@@ -70,7 +67,7 @@ while True:
             encoding = 'utf-8',
         ) as error_file:
             error_file.write(
-                f'{page_data}\n\n\n{c.export_text()}'
+                f'{page_data_str}\n\n\n{c.export_text()}'
             )
         print(
             f'[green] error text written to [deep_sky_blue1]{error_file_path}'

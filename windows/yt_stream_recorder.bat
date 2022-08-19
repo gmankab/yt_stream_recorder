@@ -46,4 +46,4 @@ if not exist "%proj_py%" (
     ren "%tmp_name%" "%proj_name%_win.py"
 )
 
-"%python%" "%proj_py%" %*
+"%python%" "%proj_py%" portable %*
