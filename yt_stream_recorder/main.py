@@ -11,7 +11,7 @@ import os
 
 rich.pretty.install()
 traceback.install(show_locals=True)
-version = '22.0.3'
+version = '22.0.4'
 c = rich.console.Console(
     record = True
 )
@@ -49,6 +49,8 @@ while True:
     except json.JSONDecodeError as error:
         error_file_path = Path(f'{proj_dir}/error.txt')
         c.export_text()
+        c.print(page_data)
+        c.print('\n\n\n')
         c.print_exception(
             show_locals=True,
             max_frames=20,
@@ -58,7 +60,7 @@ while True:
             'w'
         ) as error_file:
             error_file.write(
-                f'{page_data}\n\n\n{c.export_text()}'
+                c.export_text()
             )
         print(
             f'[green] error text written to [deep_sky_blue1]{error_file_path}'
