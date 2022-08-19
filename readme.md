@@ -1,6 +1,6 @@
-# PrettyGit
+# yt stream recorder
 
-very simple and user friendly interface for git
+tool for recording youtube streams
 
 ## license
 
