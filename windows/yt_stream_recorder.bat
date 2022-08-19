@@ -1,7 +1,7 @@
 @echo off
 
 set cwd=%~dp0
-set proj_name=yt_stream_recorder
+set proj_name=yt_stream_recorder_win
 set proj_path=%cwd%\%proj_name%
 set proj_py=%proj_path%\%proj_name%.py
 set tmp_name=%proj_path%\%proj_name%.tmp

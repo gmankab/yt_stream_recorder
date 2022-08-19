@@ -20,7 +20,7 @@ if portable:
 
 try:
     import yt_stream_recorder
-    exit()
+    sys.exit()
 except ImportError as error_text:
     # print(error_text)
 
