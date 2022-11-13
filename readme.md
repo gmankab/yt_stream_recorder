@@ -9,7 +9,7 @@ python script for recording streams from youtube
 [yt_stream_recorder.sh](https://github.com/gmankab/yt_stream_recorder/releases/download/yt_stream_recorder/yt_stream_recorder.sh) - for linux  
 [yt_stream_recorder.bat](https://github.com/gmankab/yt_stream_recorder/releases/download/yt_stream_recorder/yt_stream_recorder.bat) - for windows
 
-just run downloaded file
+just downloaded and run
 
 ## install via terminal
 
