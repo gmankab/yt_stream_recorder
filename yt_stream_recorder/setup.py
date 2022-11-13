@@ -81,7 +81,7 @@ Exec=/bin/python -m {app_name}
         icon_target,
     )
 
-    if yes_or_no.choose(
+    if yes_no.choose(
 f'''
 [green]\
 Created file [deep_sky_blue1]{dotdesktop_path}
