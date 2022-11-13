@@ -6,6 +6,9 @@ build-backend = "hatchling.build"
 dependencies = [
   "rich",
   "yt-dlp",
+  "betterdata",
+  "easyselect",
+  "gmanka_yml",
 ]
 name = "yt_stream_recorder"
 version = "22.0.8"

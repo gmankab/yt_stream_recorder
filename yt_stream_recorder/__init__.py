@@ -1,3 +1,1 @@
-#!/bin/python
-
-import yt_stream_recorder.main
+from yt_stream_recorder import main

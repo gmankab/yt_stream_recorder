@@ -6,8 +6,8 @@ set proj_path=%cwd%\%proj_name%
 set proj_py=%proj_path%\%proj_name%_win.py
 set tmp_name=%proj_path%\%proj_name%_win.tmp
 set project_link=https://raw.githubusercontent.com/gmankab/yt_stream_recorder/main/windows/yt_stream_recorder_win.py
-set python_version=3.10.6
-set python_dir=%proj_path%\!python_%python_version%
+set python_version=3.10.7
+set python_dir=%proj_path%\.python_%python_version%
 set python=%python_dir%\python.exe
 set python_tmp=%python_dir%\python.tmp
 set python_zip=%python_dir%\python.zip
@@ -15,9 +15,6 @@ set python_link=https://python.org/ftp/python/%python_version%/python-%python_ve
 
 
 if not exist "%proj_path%" (
-    echo %proj_name% supports only latest versions of windows 10 and 11
-    echo if errors occur, please update windows
-    pause
     mkdir "%proj_path%"
 )
 
@@ -47,3 +44,5 @@ if not exist "%proj_py%" (
 )
 
 "%python%" "%proj_py%" portable %*
+
+pause

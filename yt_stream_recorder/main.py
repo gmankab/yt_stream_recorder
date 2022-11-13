@@ -1,7 +1,30 @@
-from rich import traceback
-from rich import progress
+try:
+    from setup import (
+        modules_path,
+        app_version,
+        yes_no,
+        proj_path,
+        app_name,
+        system,
+    )
+except ModuleNotFoundError:
+    from reposter.setup import (  # type: ignore
+        modules_path,
+        app_version,
+        yes_no,
+        proj_path,
+        app_name,
+        system,
+    )
+
+from betterdata import Data
+from easyselect import Sel
 from pathlib import Path
-import subprocess
+import rich.traceback
+import rich.progress
+import rich.pretty
+import subprocess as sp
+import datetime
 import json
 import rich
 import time
@@ -10,101 +33,283 @@ import os
 
 
 rich.pretty.install()
-traceback.install(show_locals=True)
-version = '22.0.8'
+rich.traceback.install(
+    show_locals=True
+)
 c = rich.console.Console(
     record = True
 )
 print = c.print
-run_st = subprocess.getstatusoutput
-up_one = '\x1b[1A'
-erase_line = '\x1b[2K'
-proj_dir = Path(__file__).parent.resolve()
-if 'portable' in sys.argv:
-    yt_dlp_dir = Path(
-        f'{Path(proj_dir).parent.resolve()}/yt_dlp'
+proj_path = Path(__file__).parent.resolve()
+logs = Path(
+    f'{proj_path}/{app_name}_logs'
+)
+config_path = Path(
+    f'{modules_path}/{app_name}.yml'
+)
+config = Data(
+    file_path = config_path
+)
+pip = f'{sys.executable} -m pip'
+print(
+    f'{app_name} [bold deep_sky_blue1]{app_version}'
+)
+run = sp.getoutput
+
+
+def run_logged(
+    command: list[str]
+):
+    if not logs.exists():
+        logs.mkdir(
+            exist_ok = True,
+            parents = True,
+        )
+    filename = datetime.datetime.now().strftime(
+        "%Y-%m-%d_%H-%M.log"
     )
-    yt_dlp = f'{sys.executable} {yt_dlp_dir}'
-else:
-    yt_dlp = f'{sys.executable} -m yt_dlp'
+    all_logs = list(logs.iterdir())
+    while len(all_logs) >= config['max_log_files']:
+        all_logs[0].unlink()
+        all_logs.remove(all_logs[0])
+    with sp.Popen(
+        command,
+        stdout = sp.PIPE,
+        stderr = sp.PIPE,
+    ).stdout as pipe:
+        for line in iter(
+            pipe.readline,
+            b''
+        ):
+            with open(
+                f'{logs}/{filename}',
+                'a',
+            ) as log:
+                line = str(line)
+                if line[:2] == "b'":
+                    line = line[2:]
+                if line[-3:] == r"\n'":
+                    line = line[:-3]
+                print(line)
+                log.write(line + '\n')
 
 
-def run(
-    command: str
-) -> str:
-    return run_st(
-        command
-    )[-1]
+def init_config() -> None:
+    # if config['app_version'] and config['app_version'] < '22.0.0':
+    #     if config['app_version'] != app_version:
+    #         config['app_version'] = app_version
+    #     update_app(
+    #         forced=True
+    #     )
+    if 'check_updates' not in config:
+        if yes_no.choose(
+            text='[deep_sky_blue1]do you want to check updates on start?'
+        ) == 'yes':
+            config['check_updates'] = True
+        else:
+            config['check_updates'] = False
+    if config['app_version'] != app_version:
+        config['app_version'] = app_version
 
+    if not config['yt_dlp_args']:
+        config[
+            'yt_dlp_args'
+        ] = '--playlist-items 1 --ignore-errors --no-abort-on-error --keep-video'
 
-channel_link = 'https://youtube.com/channel/UCk73U4QT3cNDvqb_PaWM8AA'
-params = '--playlist-items 1 --ignore-errors --no-abort-on-error'
-timeout_for_checking = 15
+    if not config['yt_dlp_path']:
+        yt_dlp_path1 = f'{sys.executable} {modules_path}/yt_dlp'
+        yt_dlp_path2 = f'{sys.executable} -m yt_dlp'
+        check_str = 'Type yt-dlp --help to see a list of all options.'
+        if check_str in run(yt_dlp_path1):
+            config[
+                'yt_dlp_path'
+            ] = yt_dlp_path1
+        elif check_str in run(yt_dlp_path2):
+            config[
+                'yt_dlp_path'
+            ] = yt_dlp_path2
+        else:
+            config.interactive_input('yt_dlp_path')
 
-print(f'started stream recorder version {version}')
-
-while True:
-    print('checking latest video...')
-    page_data_str = run(
-        f'{yt_dlp} {params} {channel_link} -j'
-    )
-    try:
-        index = page_data_str.find('{')
-        page_data = json.loads(
-            page_data_str[index:]
+    if not config['timeout']:
+        config['timeout'] = 15
+    if not config['max_log_files']:
+        config['max_log_files'] = 30
+    if not config['channel']:
+        channel = Sel(
+            [
+                'JolyGolf',
+                'IzzyLaif',
+                'add new channel'
+            ],
+            styles = [
+                None,
+                None,
+                'green',
+            ]
+        ).choose(
+            'please select youtube channel'
         )
-    except Exception:
-        error_file_path = Path(f'{proj_dir}/error.txt')
-        c.export_text()
-        print(sys.path)
-        c.print_exception(
-            show_locals=True,
-            max_frames=20,
-        )
-        with open(
-            error_file_path,
-            'w',
-            encoding = 'utf-8',
-        ) as error_file:
-            error_file.write(
-                f'{page_data_str}\n\n\n{c.export_text()}'
-            )
-        print(
-            f'[green] error text written to [deep_sky_blue1]{error_file_path}'
-        )
-        sys.exit()
-
-    id = page_data['id']
-    is_live = page_data['is_live']
-
-    print(
-        f'got video [green]{id}[/green]:',
-        end = ' '
-    )
-    if is_live:
-        print('[green]this is stream,[/green] starting record!')
-        os.system(f"{yt_dlp} {params} --live-from-start https://youtube.com/watch?v={id} -v")
-    else:
-        print(
-            '[red]this is not a stream',
-        )
-        with progress.Progress(
-            progress.TextColumn("[progress.description]{task.description}"),
-            progress.BarColumn(),
-            progress.TimeRemainingColumn(),
-        ) as timer:
-            timer1 = timer.add_task(
-                f'waiting for {timeout_for_checking} seconds',
-                total = timeout_for_checking
-            )
-            step = 0.1
-            while not timer.finished:
-                timer.update(
-                    timer1,
-                    advance = step
+        match channel:
+            case 'JolyGolf':
+                config['channel'] = 'https://youtube.com/channel/UCk73U4QT3cNDvqb_PaWM8AA'
+            case 'IzzyLaif':
+                config['channel'] = 'https://youtube.com/@IzzyLaif'
+            case 'add new channel':
+                config.interactive_input(
+                    'channel',
+                    text = '\n[bold]input channel link'
                 )
-                time.sleep(step)
 
-        sys.stdout.write(
-            erase_line + (up_one + erase_line) * 3
+
+def update_app(
+    forced = False
+):
+    if not config['check_updates']:
+        return
+    if not forced:
+        print('[deep_sky_blue1]checking for updates')
+        with rich.progress.Progress(
+            transient = True
+        ) as progr:
+            progr.add_task(
+                total = None,
+                description = ''
+            )
+            packages = []
+            pip_list = f'{pip} list --format=json --path {modules_path}'
+            all_packages_str = run(pip_list)
+            start = all_packages_str.find('[')
+            end = all_packages_str.rfind(']') + 1
+            all_packages_str = all_packages_str[start:end]
+            try:
+                all_packages = json.loads(
+                    all_packages_str
+                )
+            except json.JSONDecodeError:
+                progr.stop()
+                print(
+                    f'''
+    {pip_list} command returned non-json output:
+
+    {all_packages_str}
+    '''
+                )
+                return
+            for package in all_packages:
+                if package['name'] != app_name:
+                    packages.append(
+                        package['name']
+                    )
+
+            command = f'{pip} list --outdated --format=json --path {modules_path}'
+            for package in packages:
+                command += f' --exclude {package}'
+
+            updates_found_str = run(command)
+            updates_found = 'reposter' in updates_found_str
+            progr.stop()
+
+        if not updates_found:
+            print('updates not found')
+            return
+    if not forced:
+        if yes_no.choose(
+            text=f'''\
+    [green]found updates, do you want to update {app_name}?'
+    changelog - https://github.com/gmankab/reposter/blob/main/changelog.md
+    '''
+        ) == 'no':
+            return
+
+    requirements = "betterdata easyselect gmanka_yml rich yt-dlp"
+
+    match system:
+        case 'Linux':
+            update = f'''\
+kill -2 {os.getpid()} && \
+sleep 1 && \
+{pip} install --upgrade --force-reinstall {app_name} {requirements} \
+--no-warn-script-location -t {modules_path} && \
+{sys.executable} {proj_path}\
+'''
+        case 'Windows':
+            update = f'''\
+taskkill /f /pid {os.getpid()} && \
+timeout /t 1 && \
+{pip} install --upgrade --force-reinstall {app_name} {requirements} \
+--no-warn-script-location -t {modules_path} && \
+{sys.executable} {proj_path}\
+'''
+    print(f'restarting and updating {app_name} with command:\n{update}')
+    os.system(
+        update
+    )
+
+
+def main():
+    init_config()
+    yt_dlp = f'{config.yt_dlp_path} {config.yt_dlp_args}'
+    while True:
+        print('checking latest video...')
+        page_data_str = run(
+            f'{yt_dlp} {config.channel} -j'
         )
+        start = page_data_str.find('{')
+        end = page_data_str.rfind('}') + 1
+        page_data_str = page_data_str[start:end]
+        try:
+            page_data = json.loads(
+                page_data_str
+            )
+        except Exception:
+            error_path = f'{proj_path}/error.txt'
+            with open(
+                error_path,
+                'w',
+            ) as file:
+                c_error = rich.console.Console(
+                    width=80,
+                    file=file,
+                )
+                c_error.print_exception(
+                    show_locals=True
+                )
+            c.print_exception(
+                show_locals=True
+            )
+            sys.exit()
+
+        id = page_data['id']
+        is_live = page_data['is_live']
+
+        print(
+            f'got video [green]{id}[/green]:',
+            end = ' '
+        )
+        if is_live:
+            print('[green]this is stream,[/green] starting record!')
+            os.system(f"{yt_dlp} --live-from-start https://youtube.com/watch?v={id} -v")
+        else:
+            print(
+                '[red]this is not a stream',
+            )
+            with rich.progress.Progress(
+                rich.progress.TextColumn("[progress.description]{task.description}"),
+                rich.progress.BarColumn(),
+                rich.progress.TimeRemainingColumn(),
+            ) as timer:
+                timer1 = timer.add_task(
+                    f'waiting for {config.timeout} seconds',
+                    total = config.timeout,
+                )
+                step = 0.1
+                while not timer.finished:
+                    timer.update(
+                        timer1,
+                        advance = step
+                    )
+                    time.sleep(step)
+            c.clear()
+
+main()

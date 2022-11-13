@@ -1,13 +1,12 @@
-#!/bin/python
-
 import sys
-from pathlib import Path
+import rich.traceback
+rich.traceback.install()
 
-proj_path = str(Path(__file__).parent.parent.resolve())
-
-if proj_path not in sys.path:
-    sys.path.append(
-        proj_path
-    )
-
-import yt_stream_recorder
+if '-m' not in sys.argv:
+    try:
+        import main
+    except ImportError as error1:
+        try:
+            from yt_stream_recorder import main
+        except ImportError as error2:
+            raise error1 from error2

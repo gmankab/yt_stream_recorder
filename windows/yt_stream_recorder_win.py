@@ -9,12 +9,11 @@ proj_name = 'yt_stream_recorder'
 proj_path = Path(__file__).parent.resolve()
 run_st = subprocess.getstatusoutput
 
-
 try:
     import yt_stream_recorder
-    sys.exit()
-except ImportError as error_text:
-    # print(error_text)
+except ImportError as error:
+    print(sys.path)
+    print(error)
 
     def run(
         command: str
@@ -42,8 +41,9 @@ except ImportError as error_text:
             )
 
     pip = f'{sys.executable} -m pip'
-    pip_cache_path = f'{proj_path}/pip_cache'
-    upgrade_pip = run(f'{pip} install --upgrade pip --cache-dir {pip_cache_path}')
+    upgrade_pip = run(
+        f'{pip} install --upgrade pip --no-cache-dir'
+    )
 
     if 'No module named pip' in upgrade_pip:
         print('downloading pip')
@@ -59,9 +59,9 @@ except ImportError as error_text:
                     f'{py_dir}/{file}', 'w'
                 ) as file:
                     file.write(
-                        f'''\
-{proj_path}
+                        '''\
 python310.zip
+./../
 .
 
 import site
@@ -81,33 +81,20 @@ import site
 
         print('Preparing to update pip')
         os.system(
-            f'{sys.executable} {get_pip} --no-warn-script-location --cache-dir {pip_cache_path}'
+            f'{sys.executable} {get_pip} --no-warn-script-location --no-cache-dir'
         )
         os.remove(get_pip)
-        print('successfully installed pip')
     else:
         print(upgrade_pip)
 
-    os.system(f'{pip} config set global.no-warn-script-location true')
+    os.system(
+        f'{pip} install --upgrade --force-reinstall {proj_name} -t {proj_path} --no-cache-dir')
 
-    os.system(f'{pip} install --upgrade {proj_name} -t {proj_path} --cache-dir {pip_cache_path}')
-    sh.rmtree(
-        pip_cache_path,
-        ignore_errors=True
-    )
-
-    for file_name in os.listdir(proj_path):
-        if (
-            len(file_name) > 10
-        ) and (
-            file_name[-10:] == '.dist-info'
-        ):
-            sh.rmtree(
-                f'{proj_path}/{file_name}',
-                ignore_errors=True,
-            )
-
-    restart_script = f'{sys.executable} {" ".join(sys.argv)}'
+    restart_script = f'''\
+taskkill /f /pid {os.getpid()} && \
+timeout /t 1 && \
+{sys.executable} {" ".join(sys.argv)}\
+'''
     print(f'restarting script with command:\n{restart_script}')
     os.system(
         restart_script
