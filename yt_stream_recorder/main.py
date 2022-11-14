@@ -8,7 +8,7 @@ try:
         system,
     )
 except ModuleNotFoundError:
-    from reposter.setup import (  # type: ignore
+    from yt_stream_recorder.setup import (  # type: ignore
         modules_path,
         app_version,
         yes_no,
@@ -207,7 +207,7 @@ def update_app(
                 command += f' --exclude {package}'
 
             updates_found_str = run(command)
-            updates_found = 'reposter' in updates_found_str
+            updates_found = app_name in updates_found_str
             progr.stop()
 
         if not updates_found:
@@ -217,7 +217,6 @@ def update_app(
         if yes_no.choose(
             text=f'''\
     [green]found updates, do you want to update {app_name}?'
-    changelog - https://github.com/gmankab/reposter/blob/main/changelog.md
     '''
         ) == 'no':
             return
