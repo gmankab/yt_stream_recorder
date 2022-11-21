@@ -159,6 +159,8 @@ def init_config() -> None:
 #         )
     if config['app_version'] != app_version:
         config['app_version'] = app_version
+        if portable:
+            restart()
 
     if 'check_updates' not in config:
         if yes_no.choose(
