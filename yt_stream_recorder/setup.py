@@ -8,13 +8,14 @@ import sys
 import os
 
 
-app_version = '22.2.1'
+app_version = '22.2.2'
 app_name = 'yt_stream_recorder'
 proj_path = Path(__file__).parent.resolve()
 modules_path = Path(__file__).parent.parent.resolve()
 c = rich.console.Console()
 print = c.print
 win_py_file = Path(f'{modules_path}/{app_name}_win.py')
+bat_file = Path(f'{modules_path.parent.resolve()}/{app_name}.bat')
 portable = win_py_file.exists()
 run_st = sp.getstatusoutput
 os_name = platform.system()

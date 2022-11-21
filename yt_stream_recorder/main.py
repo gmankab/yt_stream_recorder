@@ -5,6 +5,7 @@ try:
         win_py_file,
         proj_path,
         app_name,
+        bat_file,
         portable,
         yes_no,
         os_name,
@@ -16,9 +17,10 @@ except ModuleNotFoundError:
         win_py_file,
         proj_path,
         app_name,
+        bat_file,
         portable,
-        yes_no,
         os_name,
+        yes_no,
     )
 
 from urllib import request as r
@@ -115,7 +117,6 @@ def init_config() -> None:
 #     ) and (
 #         config['app_version'] < '22.2.0'
 #     ) and portable:
-#         bat_file = Path(f'{modules_path.parent.resolve()}/{app_name}.bat')
 #         bat_file_tmp = Path(f'{bat_file}.tmp')
 #         win_py_file_tmp = Path(f'{win_py_file}.tmp')
 #         old_python_path = Path(f'{modules_path}/.python_3.10.7')
@@ -317,11 +318,18 @@ sleep 1 && \
 {sys.executable} {proj_path}\
 '''
         case 'Windows':
-            update = f'''\
+            if portable:
+                update = f'''\
 taskkill /f /pid {os.getpid()} && \
 timeout /t 1 && \
-{sys.executable} {proj_path}\
+{bat_file}\
 '''
+            else:
+                update = f'''\
+    taskkill /f /pid {os.getpid()} && \
+    timeout /t 1 && \
+    {sys.executable} {proj_path}\
+    '''
     print(f'restarting and updating {app_name} with command:\n{update}')
     os.system(
         update
