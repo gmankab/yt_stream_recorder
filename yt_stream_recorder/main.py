@@ -38,10 +38,6 @@ import time
 import sys
 import os
 
-if '-r' in sys.argv:
-    input('press enter to continue')
-
-
 rich.pretty.install()
 rich.traceback.install(
     show_locals=True
@@ -163,8 +159,6 @@ def init_config() -> None:
 #         )
     if config['app_version'] != app_version:
         config['app_version'] = app_version
-        if portable:
-            restart()
 
     if 'check_updates' not in config:
         if yes_no.choose(
@@ -305,7 +299,7 @@ timeout /t 1 && \
 {pip} install --upgrade --no-cache-dir --force-reinstall {app_name} {requirements} \
 --no-warn-script-location -t {modules_path} && \
 timeout /t 1 && \
-{sys.executable} {proj_path} -r
+{sys.executable} {proj_path}
 '''
     print(f'restarting and updating {app_name} with command:\n{update}')
     os.system(
@@ -324,7 +318,7 @@ sleep 1 && \
             update = f'''
 taskkill /f /pid {os.getpid()} && \
 timeout /t 1 && \
-{sys.executable} {proj_path} -r
+{sys.executable} {proj_path}
 '''
     print(f'restarting and updating {app_name} with command:\n{update}')
     os.system(
