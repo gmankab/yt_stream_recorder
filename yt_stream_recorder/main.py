@@ -38,6 +38,9 @@ import time
 import sys
 import os
 
+if '-r' in sys.argv:
+    input('press enter to continue')
+
 
 rich.pretty.install()
 rich.traceback.install(
@@ -287,22 +290,22 @@ def update_app(
 
     match os_name:
         case 'Linux':
-            update = f'''\
+            update = f'''
 kill -2 {os.getpid()} && \
 sleep 1 && \
 {pip} install --upgrade --no-cache-dir --force-reinstall {app_name} {requirements} \
 --no-warn-script-location -t {modules_path} && \
 sleep 1 && \
-{sys.executable} {proj_path}\
+{sys.executable} {proj_path}
 '''
         case 'Windows':
-            update = f'''\
+            update = f'''
 taskkill /f /pid {os.getpid()} && \
 timeout /t 1 && \
 {pip} install --upgrade --no-cache-dir --force-reinstall {app_name} {requirements} \
 --no-warn-script-location -t {modules_path} && \
 timeout /t 1 && \
-{sys.executable} {proj_path}\
+{sys.executable} {proj_path} -r
 '''
     print(f'restarting and updating {app_name} with command:\n{update}')
     os.system(
@@ -312,24 +315,17 @@ timeout /t 1 && \
 def restart():
     match os_name:
         case 'Linux':
-            update = f'''\
+            update = f'''
 kill -2 {os.getpid()} && \
 sleep 1 && \
-{sys.executable} {proj_path}\
+{sys.executable} {proj_path}
 '''
         case 'Windows':
-            if portable:
-                update = f'''\
+            update = f'''
 taskkill /f /pid {os.getpid()} && \
 timeout /t 1 && \
-{bat_file}\
+{sys.executable} {proj_path} -r
 '''
-            else:
-                update = f'''\
-    taskkill /f /pid {os.getpid()} && \
-    timeout /t 1 && \
-    {sys.executable} {proj_path}\
-    '''
     print(f'restarting and updating {app_name} with command:\n{update}')
     os.system(
         update

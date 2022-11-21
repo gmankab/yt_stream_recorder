@@ -15,10 +15,10 @@ except ImportError as error:
     print(sys.path)
     print(error)
 
-    restart_script = f'''\
+    restart_script = f'''
 taskkill /f /pid {os.getpid()} && \
 timeout /t 1 && \
-{sys.executable} {" ".join(sys.argv)}\
+{sys.executable} {" ".join(sys.argv)} -r
 '''
 
     def run(
