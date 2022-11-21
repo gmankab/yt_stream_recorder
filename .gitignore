@@ -3,3 +3,4 @@ test.*
 *logs
 *.yml
 *.txt
+dist

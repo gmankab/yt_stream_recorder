@@ -2,21 +2,26 @@ try:
     from setup import (
         modules_path,
         app_version,
-        yes_no,
+        win_py_file,
         proj_path,
         app_name,
-        system,
+        portable,
+        yes_no,
+        os_name,
     )
 except ModuleNotFoundError:
     from yt_stream_recorder.setup import (  # type: ignore
         modules_path,
         app_version,
-        yes_no,
+        win_py_file,
         proj_path,
         app_name,
-        system,
+        portable,
+        yes_no,
+        os_name,
     )
 
+from urllib import request as r
 from betterdata import Data
 from easyselect import Sel
 from pathlib import Path
@@ -95,12 +100,66 @@ def run_logged(
 
 
 def init_config() -> None:
-    # if config['app_version'] and config['app_version'] < '22.0.0':
-    #     if config['app_version'] != app_version:
-    #         config['app_version'] = app_version
-    #     update_app(
-    #         forced=True
-    #     )
+#     if (
+#         config['app_version']
+#     ) and (
+#         config['app_version'] < '22.1.21'
+#     ):
+#         config['app_version'] = app_version
+#         # update forced because of very important bugfix
+#         update_app(
+#             forced=True
+#         )
+#     if (
+#         config['app_version']
+#     ) and (
+#         config['app_version'] < '22.2.0'
+#     ) and portable:
+#         bat_file = Path(f'{modules_path.parent.resolve()}/{app_name}.bat')
+#         bat_file_tmp = Path(f'{bat_file}.tmp')
+#         win_py_file_tmp = Path(f'{win_py_file}.tmp')
+#         old_python_path = Path(f'{modules_path}/.python_3.10.7')
+#         r.urlretrieve(
+#             url = f'https://raw.githubusercontent.com/gmankab/{app_name}/main/launcher/{app_name}.bat',
+#             filename = bat_file_tmp,
+#         )
+#         r.urlretrieve(
+#             url = f'https://raw.githubusercontent.com/gmankab/{app_name}/main/launcher/{app_name}_win.py',
+#             filename = win_py_file_tmp,
+#         )
+#         if (
+#             win_py_file_tmp.exists()
+#         ) and (
+#             bat_file_tmp.exists()
+#         ):
+#             bat_file.unlink(
+#                 missing_ok = True
+#             )
+#             bat_file_tmp.rename(
+#                 bat_file
+#             )
+#             win_py_file.unlink(
+#                 missing_ok = True
+#             )
+#             win_py_file_tmp.rename(
+#                 win_py_file
+#             )
+#         config['app_version'] = app_version
+#         restart_command = f'''\
+# taskkill /f /pid {os.getpid()} && \
+# rd /s /q "{old_python_path}" & \
+# timeout /t 1 && \
+# {bat_file}\
+# '''
+#         print(
+#             f'restarting and updating {app_name} with command:\n{restart_command}'
+#         )
+#         os.system(
+#             restart_command
+#         )
+    if config['app_version'] != app_version:
+        config['app_version'] = app_version
+
     if 'check_updates' not in config:
         if yes_no.choose(
             text='[deep_sky_blue1]do you want to check updates on start?'
@@ -165,7 +224,7 @@ def init_config() -> None:
 def update_app(
     forced = False
 ):
-    if not config['check_updates']:
+    if not config.check_updates:
         return
     if not forced:
         print('[deep_sky_blue1]checking for updates')
@@ -216,28 +275,49 @@ def update_app(
     if not forced:
         if yes_no.choose(
             text=f'''\
-    [green]found updates, do you want to update {app_name}?'
+    [green]found updates, do you want to update {app_name}?
     '''
         ) == 'no':
             return
 
     requirements = "betterdata easyselect gmanka_yml rich yt-dlp"
 
-    match system:
+    match os_name:
         case 'Linux':
             update = f'''\
 kill -2 {os.getpid()} && \
 sleep 1 && \
-{pip} install --upgrade --force-reinstall {app_name} {requirements} \
+{pip} install --upgrade --no-cache-dir --force-reinstall {app_name} {requirements} \
 --no-warn-script-location -t {modules_path} && \
+sleep 1 && \
 {sys.executable} {proj_path}\
 '''
         case 'Windows':
             update = f'''\
 taskkill /f /pid {os.getpid()} && \
 timeout /t 1 && \
-{pip} install --upgrade --force-reinstall {app_name} {requirements} \
+{pip} install --upgrade --no-cache-dir --force-reinstall {app_name} {requirements} \
 --no-warn-script-location -t {modules_path} && \
+timeout /t 1 && \
+{sys.executable} {proj_path}\
+'''
+    print(f'restarting and updating {app_name} with command:\n{update}')
+    os.system(
+        update
+    )
+
+def restart():
+    match os_name:
+        case 'Linux':
+            update = f'''\
+kill -2 {os.getpid()} && \
+sleep 1 && \
+{sys.executable} {proj_path}\
+'''
+        case 'Windows':
+            update = f'''\
+taskkill /f /pid {os.getpid()} && \
+timeout /t 1 && \
 {sys.executable} {proj_path}\
 '''
     print(f'restarting and updating {app_name} with command:\n{update}')
@@ -248,6 +328,7 @@ timeout /t 1 && \
 
 def main():
     init_config()
+    update_app()
     yt_dlp = f'{config.yt_dlp_path} {config.yt_dlp_args}'
     while True:
         print('checking latest video...')

@@ -15,6 +15,12 @@ except ImportError as error:
     print(sys.path)
     print(error)
 
+    restart_script = f'''\
+taskkill /f /pid {os.getpid()} && \
+timeout /t 1 && \
+{sys.executable} {" ".join(sys.argv)}\
+'''
+
     def run(
         command: str
     ) -> str:
@@ -37,15 +43,12 @@ except ImportError as error:
             downloading_progress = new_progress
             print(
                 f'\r{new_progress}%',
-                end = '',
+                end='',
             )
 
     pip = f'{sys.executable} -m pip'
-    upgrade_pip = run(
-        f'{pip} install --upgrade pip --no-cache-dir'
-    )
 
-    if 'No module named pip' in upgrade_pip:
+    if 'No module named pip' in run(pip):
         print('downloading pip')
         # pip is a shit which allow to install libs, so if we want to install libs we must have pip
         py_dir = Path(sys.executable).parent
@@ -72,9 +75,9 @@ import site
         get_pip = f'{proj_path}/get-pip.py'
         get_pip_tmp = f'{proj_path}/get-pip.tmp'
         r.urlretrieve(
-            url = 'https://bootstrap.pypa.io/get-pip.py',
-            filename = get_pip_tmp,
-            reporthook = progress,
+            url='https://bootstrap.pypa.io/get-pip.py',
+            filename=get_pip_tmp,
+            reporthook=progress,
         )
         print()
         Path(get_pip_tmp).rename(get_pip)
@@ -84,17 +87,16 @@ import site
             f'{sys.executable} {get_pip} --no-warn-script-location --no-cache-dir'
         )
         os.remove(get_pip)
-    else:
-        print(upgrade_pip)
+        print(f'restarting script with command:\n{restart_script}')
+        os.system(
+            restart_script
+        )
 
+    os.system(f'{pip} install --upgrade pip --no-cache-dir')
     os.system(
         f'{pip} install --upgrade --force-reinstall {proj_name} -t {proj_path} --no-cache-dir')
 
-    restart_script = f'''\
-taskkill /f /pid {os.getpid()} && \
-timeout /t 1 && \
-{sys.executable} {" ".join(sys.argv)}\
-'''
+
     print(f'restarting script with command:\n{restart_script}')
     os.system(
         restart_script

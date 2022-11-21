@@ -8,14 +8,16 @@ import sys
 import os
 
 
-app_version = '22.1.1'
+app_version = '22.2.0'
 app_name = 'yt_stream_recorder'
 proj_path = Path(__file__).parent.resolve()
 modules_path = Path(__file__).parent.parent.resolve()
 c = rich.console.Console()
 print = c.print
-portable = 'portable' in sys.argv
-system = platform.system()
+win_py_file = Path(f'{modules_path}/{app_name}_win.py')
+portable = win_py_file.exists()
+run_st = sp.getstatusoutput
+os_name = platform.system()
 
 
 yes_no = Sel(
@@ -33,7 +35,7 @@ yes_no = Sel(
 
 
 def main():
-    match system:
+    match os_name:
         case 'Linux':
             linux()
         case 'Windows':
