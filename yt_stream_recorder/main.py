@@ -50,6 +50,9 @@ proj_path = Path(__file__).parent.resolve()
 logs = Path(
     f'{proj_path}/{app_name}_logs'
 )
+errors = Path(
+    f'{proj_path}/{app_name}_errors'
+)
 config_path = Path(
     f'{modules_path}/{app_name}.yml'
 )
@@ -66,11 +69,10 @@ run = sp.getoutput
 def run_logged(
     command: list[str]
 ):
-    if not logs.exists():
-        logs.mkdir(
-            exist_ok = True,
-            parents = True,
-        )
+    logs.mkdir(
+        exist_ok = True,
+        parents = True,
+    )
     filename = datetime.datetime.now().strftime(
         "%Y-%m-%d_%H-%M.log"
     )
@@ -194,6 +196,8 @@ def init_config() -> None:
         config['timeout'] = 15
     if not config['max_log_files']:
         config['max_log_files'] = 30
+    if not config['max_error_files']:
+        config['max_error_files'] = 30
     if not config['channel']:
         channel = Sel(
             [
@@ -282,23 +286,22 @@ def update_app(
 
     requirements = "betterdata easyselect gmanka_yml rich yt-dlp"
 
-    match os_name:
-        case 'Linux':
-            update = f'''
-kill -2 {os.getpid()} && \
-sleep 1 && \
-{pip} install --upgrade --no-cache-dir --force-reinstall {app_name} {requirements} \
---no-warn-script-location -t {modules_path} && \
-sleep 1 && \
-{sys.executable} {proj_path}
-'''
-        case 'Windows':
-            update = f'''
+    if os_name == 'Windows':
+        update = f'''
 taskkill /f /pid {os.getpid()} && \
 timeout /t 1 && \
 {pip} install --upgrade --no-cache-dir --force-reinstall {app_name} {requirements} \
 --no-warn-script-location -t {modules_path} && \
 timeout /t 1 && \
+{sys.executable} {proj_path}
+'''
+    else:
+        update = f'''
+kill -2 {os.getpid()} && \
+sleep 1 && \
+{pip} install --upgrade --no-cache-dir --force-reinstall {app_name} {requirements} \
+--no-warn-script-location -t {modules_path} && \
+sleep 1 && \
 {sys.executable} {proj_path}
 '''
     print(f'restarting and updating {app_name} with command:\n{update}')
@@ -307,17 +310,16 @@ timeout /t 1 && \
     )
 
 def restart():
-    match os_name:
-        case 'Linux':
-            update = f'''
-kill -2 {os.getpid()} && \
-sleep 1 && \
-{sys.executable} {proj_path}
-'''
-        case 'Windows':
-            update = f'''
+    if os_name == 'Windows':
+        update = f'''
 taskkill /f /pid {os.getpid()} && \
 timeout /t 1 && \
+{sys.executable} {proj_path}
+'''
+    else:
+        update = f'''
+kill -2 {os.getpid()} && \
+sleep 1 && \
 {sys.executable} {proj_path}
 '''
     print(f'restarting and updating {app_name} with command:\n{update}')
@@ -326,70 +328,84 @@ timeout /t 1 && \
     )
 
 
+def check_stream():
+    yt_dlp = f'{config.yt_dlp_path} {config.yt_dlp_args}'
+    print('checking latest video...')
+    page_data_str = run(
+        f'{yt_dlp} {config.channel} -j'
+    )
+    start = page_data_str.find('{')
+    end = page_data_str.rfind('}') + 1
+    page_data_str = page_data_str[start:end]
+    page_data = json.loads(
+        page_data_str
+    )
+
+    id = page_data['id']
+    is_live = page_data['is_live']
+
+    print(
+        f'got video [green]{id}[/green]:',
+        end = ' '
+    )
+    if is_live:
+        print('[green]this is stream,[/green] starting record!')
+        os.system(f"{yt_dlp} --live-from-start https://youtube.com/watch?v={id} -v")
+    else:
+        print(
+            '[red]this is not a stream',
+        )
+        with rich.progress.Progress(
+            rich.progress.TextColumn("[progress.description]{task.description}"),
+            rich.progress.BarColumn(),
+            rich.progress.TimeRemainingColumn(),
+        ) as timer:
+            timer1 = timer.add_task(
+                f'waiting for {config.timeout} seconds',
+                total = config.timeout,
+            )
+            step = 0.1
+            while not timer.finished:
+                timer.update(
+                    timer1,
+                    advance = step
+                )
+                time.sleep(step)
+        c.clear()
+
+
 def main():
     init_config()
     update_app()
-    yt_dlp = f'{config.yt_dlp_path} {config.yt_dlp_args}'
     while True:
-        print('checking latest video...')
-        page_data_str = run(
-            f'{yt_dlp} {config.channel} -j'
-        )
-        start = page_data_str.find('{')
-        end = page_data_str.rfind('}') + 1
-        page_data_str = page_data_str[start:end]
         try:
-            page_data = json.loads(
-                page_data_str
-            )
+            check_stream()
         except Exception:
-            error_path = f'{proj_path}/error.txt'
+            errors.mkdir(
+                exist_ok = True,
+                parents = True,
+            )
+            filename = datetime.datetime.now().strftime(
+                "%Y-%m-%d_%H-%M.err"
+            )
+            all_errors = list(logs.iterdir())
+            while len(all_errors) >= config['max_error_files']:
+                all_errors[0].unlink()
+                all_errors.remove(all_errors[0])
             with open(
-                error_path,
+                f'{errors}/{filename}',
                 'w',
             ) as file:
                 c_error = rich.console.Console(
-                    width=80,
-                    file=file,
+                    width = 80,
+                    file = file,
                 )
                 c_error.print_exception(
-                    show_locals=True
+                    show_locals = True
                 )
             c.print_exception(
-                show_locals=True
+                show_locals = True
             )
-            sys.exit()
 
-        id = page_data['id']
-        is_live = page_data['is_live']
-
-        print(
-            f'got video [green]{id}[/green]:',
-            end = ' '
-        )
-        if is_live:
-            print('[green]this is stream,[/green] starting record!')
-            os.system(f"{yt_dlp} --live-from-start https://youtube.com/watch?v={id} -v")
-        else:
-            print(
-                '[red]this is not a stream',
-            )
-            with rich.progress.Progress(
-                rich.progress.TextColumn("[progress.description]{task.description}"),
-                rich.progress.BarColumn(),
-                rich.progress.TimeRemainingColumn(),
-            ) as timer:
-                timer1 = timer.add_task(
-                    f'waiting for {config.timeout} seconds',
-                    total = config.timeout,
-                )
-                step = 0.1
-                while not timer.finished:
-                    timer.update(
-                        timer1,
-                        advance = step
-                    )
-                    time.sleep(step)
-            c.clear()
 
 main()
