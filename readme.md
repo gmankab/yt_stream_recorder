@@ -2,7 +2,7 @@
 
 <img src="https://github.com/gmankab/yt_stream_recorder/raw/main/img/transparent.png">
 
-python script for recording streams from youtube
+Lightweight script for recording YouTube streams. You only need to run it once, and while it is running it will record all streams on the selected channel
 
 ## navigation
 
