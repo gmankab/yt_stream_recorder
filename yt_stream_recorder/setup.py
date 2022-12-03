@@ -1,3 +1,6 @@
+# license: gnu gpl 3 https://gnu.org/licenses/gpl-3.0.en.html
+# sources: https://github.com/gmankab/reposter
+
 from pathlib import Path
 from easyselect import Sel
 import shutil as sh
@@ -7,27 +10,29 @@ import rich
 import sys
 import os
 
-
 app_version = '22.2.5'
 app_name = 'yt_stream_recorder'
 proj_path = Path(__file__).parent.resolve()
 modules_path = Path(__file__).parent.parent.resolve()
 c = rich.console.Console()
 print = c.print
-win_py_file = Path(f'{modules_path}/{app_name}_win.py')
-bat_file = Path(f'{modules_path.parent.resolve()}/{app_name}.bat')
+win_py_file = Path(
+    f'{modules_path}/{app_name}_win.py'
+)
+bat_file = Path(
+    f'{modules_path.parent.resolve()}/{app_name}.bat'
+)
 portable = win_py_file.exists()
 run_st = sp.getstatusoutput
+run = sp.getoutput
 os_name = platform.system()
-
-
 yes_no = Sel(
-    items=[
+    items = [
         'yes',
         'no',
         'exit',
     ],
-    styles=[
+    styles = [
         'green',
         'red',
         'bright_black',
@@ -47,7 +52,9 @@ def linux():
     home = Path.home()
     share = f'{home}/.local/share'
 
-    dotdesktop_path = Path(f'{home}/.local/share/applications/{app_name}.desktop')
+    dotdesktop_path = Path(
+        f'{home}/.local/share/applications/{app_name}.desktop'
+    )
     if dotdesktop_path.exists():
         return
     dotdesktop_path.parent.mkdir(
@@ -84,7 +91,7 @@ Exec=/bin/python -m {app_name}
         icon_target,
     )
 
-    if yes_no.choose(
+    act = yes_no.choose(
 f'''
 [green]\
 Created file [deep_sky_blue1]{dotdesktop_path}
@@ -97,13 +104,18 @@ Do you want do create shortcut in \
 [deep_sky_blue1]/bin[/deep_sky_blue1]?
 Then you will be able to run this script with [deep_sky_blue1]{app_name}[/deep_sky_blue1] command
 Creating this shortcut requires sudo\
-
 '''
-    ) == 'no':
-        return
+    )
+    match act:
+        case 'yes':
+            pass
+        case 'no':
+            return
+        case 'exit':
+            sys.exit()
     script = f'''\
 #!/bin/bash
-python -m {app_name}
+python -m {app_name} $@
 '''
     os.system(
 f'''
@@ -151,7 +163,7 @@ f'''\
 set WshShell = WScript.CreateObject("WScript.Shell")
 set Shortcut = WshShell.CreateShortcut("{shortcut}")
 Shortcut.TargetPath = "{sys.executable}"
-Shortcut.Arguments = "{proj_path} {'portable' if portable else ""}"
+Shortcut.Arguments = "{proj_path}"
 Shortcut.IconLocation = "{icon_source}"
 Shortcut.Save
 '''
