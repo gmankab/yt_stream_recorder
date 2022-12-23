@@ -46,6 +46,7 @@ c = rich.console.Console(
     record = True
 )
 print = c.print
+log = c.log
 proj_path = Path(__file__).parent.resolve()
 logs = Path(
     f'{proj_path}/{app_name}_logs'
@@ -92,14 +93,14 @@ def run_logged(
             with open(
                 f'{logs}/{filename}',
                 'a',
-            ) as log:
+            ) as log_file:
                 line = str(line)
                 if line[:2] == "b'":
                     line = line[2:]
                 if line[-3:] == r"\n'":
                     line = line[:-3]
                 print(line)
-                log.write(line + '\n')
+                log_file.write(line + '\n')
 
 
 def init_config() -> None:
@@ -215,14 +216,58 @@ def init_config() -> None:
         )
         match channel:
             case 'JolyGolf':
-                config['channel'] = 'https://youtube.com/channel/UCk73U4QT3cNDvqb_PaWM8AA'
+                config['channel'] = 'https://youtube.com/@jolygolf8269/streams'
             case 'IzzyLaif':
-                config['channel'] = 'https://youtube.com/@IzzyLaif'
+                config['channel'] = 'https://youtube.com/@IzzyLaif/streams'
             case 'add new channel':
-                config.interactive_input(
-                    'channel',
-                    text = '\n[bold]input channel link'
-                )
+                while True:
+                    print('\n[bold]input link to channel:')
+                    try:
+                        channel = input()
+                    except EOFError:
+                        continue
+                    if not channel:
+                        continue
+                    channel = channel.replace(
+                        'http://',
+                        'https://',
+                    ).replace(
+                        'www.',
+                        '',
+                    )
+                    for i in [
+                        '/videos',
+                        '/featured',
+                        '/playlists',
+                        '/community',
+                        '/channels',
+                        '/about',
+                    ]:
+                        length = -len(i)
+                        if channel[length:] == i:
+                            channel = channel[:length]
+                            break
+                        elif channel[length - 1:] == i + '/':
+                            channel = channel[:length - 1]
+                            break
+                    if channel[-8:] == '/streams':
+                        pass
+                    elif channel[-1] == '/':
+                        channel += 'streams'
+                    else:
+                        channel += '/streams'
+                    match yes_no.choose(
+                        f'[deep_sky_blue1]{channel}[/deep_sky_blue1] - is it correct?'
+                    ):
+                        case 'no':
+                            continue
+                        case 'exit':
+                            sys.exit()
+                        case 'yes':
+                            pass
+                    config['channel'] = channel
+                    print(f'[green]link to channel saved to config:\n[deep_sky_blue1]{config.file_path}\n')
+                    break
 
 
 def update_app(
@@ -328,6 +373,25 @@ sleep 1 && \
     )
 
 
+def sleep():
+    with rich.progress.Progress(
+        rich.progress.TextColumn("[progress.description]{task.description}"),
+        rich.progress.BarColumn(),
+        rich.progress.TimeRemainingColumn(),
+    ) as timer:
+        timer1 = timer.add_task(
+            f'waiting for {config.timeout} seconds',
+            total = config.timeout,
+        )
+        step = 0.1
+        while not timer.finished:
+            timer.update(
+                timer1,
+                advance = step
+            )
+            time.sleep(step)
+
+
 def check_stream():
     yt_dlp = f'{config.yt_dlp_path} {config.yt_dlp_args}'
     print('checking latest video...')
@@ -337,9 +401,15 @@ def check_stream():
     start = page_data_str.find('{')
     end = page_data_str.rfind('}') + 1
     page_data_str = page_data_str[start:end]
-    page_data = json.loads(
-        page_data_str
-    )
+    try:
+        page_data = json.loads(
+            page_data_str
+        )
+    except Exception:
+        log('wrong page data')
+        log(page_data_str)
+        sleep()
+        return
 
     id = page_data['id']
     is_live = page_data['is_live']
@@ -355,22 +425,7 @@ def check_stream():
         print(
             '[red]this is not a stream',
         )
-        with rich.progress.Progress(
-            rich.progress.TextColumn("[progress.description]{task.description}"),
-            rich.progress.BarColumn(),
-            rich.progress.TimeRemainingColumn(),
-        ) as timer:
-            timer1 = timer.add_task(
-                f'waiting for {config.timeout} seconds',
-                total = config.timeout,
-            )
-            step = 0.1
-            while not timer.finished:
-                timer.update(
-                    timer1,
-                    advance = step
-                )
-                time.sleep(step)
+        sleep()
         c.clear()
 
 
@@ -385,15 +440,19 @@ def main():
                 exist_ok = True,
                 parents = True,
             )
-            filename = datetime.datetime.now().strftime(
-                "%Y-%m-%d_%H-%M.err"
-            )
             all_errors = list(logs.iterdir())
             while len(all_errors) >= config['max_error_files']:
                 all_errors[0].unlink()
                 all_errors.remove(all_errors[0])
+            time = datetime.datetime.now().strftime("%Y.%m.%d__%H:%M")
+            test_filename = f'{errors}/{time}'
+            filename = Path(test_filename)
+            index = 2
+            while filename.exists():
+                filename = Path(f'{test_filename}__{index}')
+                index += 1
             with open(
-                f'{errors}/{filename}',
+                filename,
                 'w',
             ) as file:
                 c_error = rich.console.Console(
@@ -406,6 +465,7 @@ def main():
             c.print_exception(
                 show_locals = True
             )
+            c.log(f'[bold]error text written to [bold deep_sky_blue1]{filename}')
 
 
 main()

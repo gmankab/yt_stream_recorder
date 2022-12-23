@@ -10,7 +10,7 @@ import rich
 import sys
 import os
 
-app_version = '22.2.5'
+app_version = '22.2.6'
 app_name = 'yt_stream_recorder'
 proj_path = Path(__file__).parent.resolve()
 modules_path = Path(__file__).parent.parent.resolve()
