@@ -11,7 +11,7 @@ dependencies = [
   "gmanka_yml",
 ]
 name = "yt_stream_recorder"
-version = "22.2.6"
+version = "23.0.0"
 authors = [
   { name="gmanka", email="gmankab@gmail.com" },
 ]

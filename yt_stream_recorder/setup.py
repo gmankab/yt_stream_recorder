@@ -10,7 +10,7 @@ import rich
 import sys
 import os
 
-app_version = '22.2.6'
+app_version = '23.0.0'
 app_name = 'yt_stream_recorder'
 proj_path = Path(__file__).parent.resolve()
 modules_path = Path(__file__).parent.parent.resolve()
@@ -26,6 +26,7 @@ portable = win_py_file.exists()
 run_st = sp.getstatusoutput
 run = sp.getoutput
 os_name = platform.system()
+is_windows = os_name == 'Windows'
 yes_no = Sel(
     items = [
         'yes',

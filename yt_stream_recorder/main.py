@@ -74,15 +74,37 @@ def run_logged(
         exist_ok = True,
         parents = True,
     )
+    all_logs = list(logs.iterdir())
     filename = datetime.datetime.now().strftime(
         "%Y-%m-%d_%H-%M.log"
     )
-    all_logs = list(logs.iterdir())
     while len(all_logs) >= config['max_log_files']:
         all_logs[0].unlink()
         all_logs.remove(all_logs[0])
+    if isinstance(command, str):
+        splitted = command.split()
+    else:
+        splitted = command
+    # c.log(splitted)
+    print(command)
+    slitted = [
+        '/usr/bin/python', '-m yt_dlp Mmq3ab1Eu3k'
+    ]
+    # splitted = [
+    #     '/usr/bin/python',
+    #     '-m',
+    #     'yt_dlp',
+    #     '--playlist-items',
+    #     '1',
+    #     '--ignore-errors',
+    #     '--no-abort-on-error',
+    #     '--keep-video',
+    #     '--live-from-start',
+    #     'https://twitch.tv/zlobodey/streams',
+    #     '-v',
+    # ]
     with sp.Popen(
-        command,
+        splitted,
         stdout = sp.PIPE,
         stderr = sp.PIPE,
     ).stdout as pipe:
@@ -400,33 +422,44 @@ def check_stream():
     )
     start = page_data_str.find('{')
     end = page_data_str.rfind('}') + 1
-    page_data_str = page_data_str[start:end]
+    cutted_page_data_str = page_data_str[start:end]
+    skip_downloading = False
     try:
         page_data = json.loads(
-            page_data_str
+            cutted_page_data_str
         )
     except Exception:
-        log('wrong page data')
-        log(page_data_str)
-        sleep()
-        return
+        if 'The channel is not currently live' in page_data_str:
+            skip_downloading = True
+        else:
+            log('wrong page data')
+            log(page_data_str)
+            sleep()
+            return
+    if not skip_downloading:
+        id = page_data['id']
+        is_live = page_data['is_live']
 
-    id = page_data['id']
-    is_live = page_data['is_live']
-
-    print(
-        f'got video [green]{id}[/green]:',
-        end = ' '
-    )
-    if is_live:
-        print('[green]this is stream,[/green] starting record!')
-        os.system(f"{yt_dlp} --live-from-start https://youtube.com/watch?v={id} -v")
-    else:
         print(
-            '[red]this is not a stream',
+            f'got video [green]{id}[/green]:',
+            end = ' '
         )
-        sleep()
-        c.clear()
+        if is_live:
+            print('[green]this is stream,[/green] starting record!')
+            if 'youtube' in config['channel']:
+                link = id
+            else:
+                link = config['channel']
+            # try:
+            run_logged(f"{yt_dlp} --live-from-start {link} -v")
+            # os.system(f"{yt_dlp} --live-from-start {link} -v")
+            # except Exception:
+            return
+    print(
+        '[red]this is not a stream',
+    )
+    sleep()
+    c.clear()
 
 
 def main():
@@ -440,12 +473,12 @@ def main():
                 exist_ok = True,
                 parents = True,
             )
-            all_errors = list(logs.iterdir())
+            all_errors = list(errors.iterdir())
             while len(all_errors) >= config['max_error_files']:
                 all_errors[0].unlink()
                 all_errors.remove(all_errors[0])
-            time = datetime.datetime.now().strftime("%Y.%m.%d__%H:%M")
-            test_filename = f'{errors}/{time}'
+            file_date = datetime.datetime.now().strftime("%Y.%m.%d__%H:%M")
+            test_filename = f'{errors}/{file_date}'
             filename = Path(test_filename)
             index = 2
             while filename.exists():
